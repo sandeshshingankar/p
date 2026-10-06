@@ -1,0 +1,36 @@
+<html>
+<head>
+<title>auth.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+.ln { color: #4b5059; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+auth.py</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">from </span><span class="s1">flask </span><span class="s0">import </span><span class="s1">Blueprint</span><span class="s2">, </span><span class="s1">jsonify</span><span class="s2">, </span><span class="s1">request</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s1">auth_bp </span><span class="s2">= </span><span class="s1">Blueprint</span><span class="s2">(</span><span class="s3">'auth'</span><span class="s2">, </span><span class="s1">__name__</span><span class="s2">)</span>
+<a name="l4"><span class="ln">4    </span></a>
+<a name="l5"><span class="ln">5    </span></a><span class="s2">@</span><span class="s1">auth_bp</span><span class="s2">.</span><span class="s1">route</span><span class="s2">(</span><span class="s3">'/login'</span><span class="s2">, </span><span class="s1">methods</span><span class="s2">=[</span><span class="s3">'POST'</span><span class="s2">])</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s0">def </span><span class="s1">login</span><span class="s2">():</span>
+<a name="l7"><span class="ln">7    </span></a>    <span class="s1">data </span><span class="s2">= </span><span class="s1">request</span><span class="s2">.</span><span class="s1">json </span><span class="s0">or </span><span class="s2">{}</span>
+<a name="l8"><span class="ln">8    </span></a>    <span class="s1">email </span><span class="s2">= </span><span class="s1">data</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s3">'email'</span><span class="s2">)</span>
+<a name="l9"><span class="ln">9    </span></a>    <span class="s1">password </span><span class="s2">= </span><span class="s1">data</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s3">'password'</span><span class="s2">)</span>
+<a name="l10"><span class="ln">10   </span></a>
+<a name="l11"><span class="ln">11   </span></a>    <span class="s4"># Demo Authentication Logic</span>
+<a name="l12"><span class="ln">12   </span></a>    <span class="s0">if </span><span class="s1">email </span><span class="s2">== </span><span class="s3">&quot;student@college.com&quot; </span><span class="s0">and </span><span class="s1">password </span><span class="s2">== </span><span class="s3">&quot;123456&quot;</span><span class="s2">:</span>
+<a name="l13"><span class="ln">13   </span></a>        <span class="s0">return </span><span class="s1">jsonify</span><span class="s2">({</span><span class="s3">&quot;status&quot;</span><span class="s2">: </span><span class="s3">&quot;success&quot;</span><span class="s2">, </span><span class="s3">&quot;message&quot;</span><span class="s2">: </span><span class="s3">&quot;Login Successful&quot;</span><span class="s2">, </span><span class="s3">&quot;token&quot;</span><span class="s2">: </span><span class="s3">&quot;demo-jwt-token-2026&quot;</span><span class="s2">})</span>
+<a name="l14"><span class="ln">14   </span></a>    <span class="s0">return </span><span class="s1">jsonify</span><span class="s2">({</span><span class="s3">&quot;status&quot;</span><span class="s2">: </span><span class="s3">&quot;error&quot;</span><span class="s2">, </span><span class="s3">&quot;message&quot;</span><span class="s2">: </span><span class="s3">&quot;Invalid Credentials&quot;</span><span class="s2">}), </span><span class="s5">401</span></pre>
+</body>
+</html>
