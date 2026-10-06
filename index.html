@@ -1,1 +1,262 @@
-<html><head><title>C:\Users\vishn\Downloads\College_AI_Backend\College_AI_Backend\backend</title></head><body><a href="auth.py.html">auth.py</a><br /><a href="main.py.html">main.py</a><br /><a href="models.py.html">models.py</a><br /><a href="schemas.py.html">schemas.py</a><br /><a href="database.py.html">database.py</a><br /></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College App • Academic Management</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#10233f;--paper:#f7f4ed;--saffron:#ffb636;--teal:#0d8b83}
+*{box-sizing:border-box} body{margin:0;font-family:"DM Sans",sans-serif;color:var(--ink);background:var(--paper)}
+.app-shell{min-height:100vh;background:radial-gradient(circle at 92% 3%,rgba(255,182,54,.26),transparent 24rem),radial-gradient(circle at 4% 28%,rgba(13,139,131,.12),transparent 20rem),#f7f4ed}
+.display-face{font-family:"Fraunces",serif}.toast-visible{transform:translateY(0)!important;opacity:1!important}
+.modal-open{overflow:hidden} input:focus,select:focus,textarea:focus,button:focus{outline:3px solid rgba(255,182,54,.55);outline-offset:2px}
+.status-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.online{background:#22c55e}.offline{background:#ef4444}.pending{background:#f59e0b}
+.action-btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:7px 9px;font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<header class="border-b border-slate-200/80 bg-[#fffdf9]/90 backdrop-blur sticky top-0 z-30">
+ <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+  <div class="flex items-center gap-3">
+   <div class="grid h-11 w-11 place-items-center rounded-2xl bg-[#10233f] text-[#ffb636] shadow-lg"><i data-lucide="graduation-cap"></i></div>
+   <div><p class="m-0 font-bold tracking-tight">College App</p><p class="m-0 text-xs text-slate-500">Academic Management Portal</p></div>
+  </div>
+  <div class="flex items-center gap-3">
+   <div id="connectionBadge" class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold"><span class="status-dot online" id="connectionDot"></span><span id="connectionText">Checking...</span></div>
+   <button id="syncBtn" class="rounded-xl border border-slate-200 bg-white p-2.5 hover:border-[#ffb636]" title="Sync pending changes"><i data-lucide="refresh-cw"></i></button>
+  </div>
+ </div>
+</header>
+
+<main class="mx-auto max-w-7xl px-5 py-7 sm:px-8 lg:py-10">
+ <section class="mb-8 rounded-[1.7rem] bg-white p-6 shadow-sm border border-slate-200">
+  <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+   <div><p class="m-0 text-xs font-bold uppercase tracking-[.14em] text-[#0d8b83]">Admin / Faculty</p><h1 class="display-face text-3xl mt-1">Academic Content Manager</h1><p class="mt-2 text-sm text-slate-500">Add, edit and delete Assignments, Exams, Results, Notices and Timetable. Changes are saved to the backend automatically; if the backend is down, they are stored offline and synced when it returns.</p></div>
+   <div class="rounded-2xl bg-[#fff3d8] px-4 py-3 text-sm"><b id="pendingCount">0</b> pending offline change(s)</div>
+  </div>
+ </section>
+
+ <section class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+  <button class="resource-tab rounded-2xl border bg-[#10233f] p-4 text-left text-white" data-resource="assignments"><b>Assignments</b><span class="block text-xs opacity-75 mt-1">Tasks & due dates</span></button>
+  <button class="resource-tab rounded-2xl border bg-white p-4 text-left" data-resource="exams"><b>Exams</b><span class="block text-xs text-slate-500 mt-1">Schedules</span></button>
+  <button class="resource-tab rounded-2xl border bg-white p-4 text-left" data-resource="results"><b>Results</b><span class="block text-xs text-slate-500 mt-1">Marks & grades</span></button>
+  <button class="resource-tab rounded-2xl border bg-white p-4 text-left" data-resource="notices"><b>Notices</b><span class="block text-xs text-slate-500 mt-1">Announcements</span></button>
+  <button class="resource-tab rounded-2xl border bg-white p-4 text-left" data-resource="timetable"><b>Timetable</b><span class="block text-xs text-slate-500 mt-1">Classes</span></button>
+ </section>
+
+ <section class="rounded-[1.7rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
+  <div class="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+   <div><h2 id="sectionTitle" class="display-face text-2xl">Assignments</h2><p id="sectionHelp" class="text-xs text-slate-500 mt-1"></p></div>
+   <button id="addBtn" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10233f] px-4 py-3 text-sm font-bold text-white hover:bg-[#18345b]"><i data-lucide="plus" class="h-4 w-4"></i>Add Assignment</button>
+  </div>
+  <div class="overflow-x-auto"><table class="min-w-full text-sm"><thead id="tableHead" class="bg-slate-50"></thead><tbody id="tableBody"></tbody></table></div>
+ </section>
+
+ <section class="mt-8 grid gap-6 lg:grid-cols-2">
+  <article class="rounded-[1.7rem] bg-[#0d8b83] p-6 text-white shadow-lg">
+   <p class="m-0 text-xs font-bold uppercase tracking-[.14em] text-teal-100">Student Dashboard APIs</p>
+   <h2 class="display-face text-2xl mt-1">Live data endpoints</h2>
+   <div class="mt-4 grid gap-2 text-sm">
+    <code>/v1/assignments</code><code>/v1/exams</code><code>/v1/results</code><code>/v1/notices</code><code>/v1/timetable</code>
+   </div>
+  </article>
+  <article class="rounded-[1.7rem] border border-slate-200 bg-white p-6">
+   <h2 class="display-face text-2xl">Offline mode</h2>
+   <p class="mt-2 text-sm text-slate-500">The browser keeps the latest data in local storage. Create/edit/delete operations made while the Flask backend is unavailable are queued locally. When the backend becomes reachable, press Sync or simply wait for automatic sync.</p>
+   <div class="mt-4 rounded-xl bg-slate-50 p-4 text-xs text-slate-600"><b>Important:</b> Offline changes are local to this browser/device until they are synced.</div>
+  </article>
+ </section>
+</main>
+</div>
+
+<div id="modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 p-4">
+ <div class="mx-auto mt-8 max-w-2xl rounded-[1.5rem] bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
+  <div class="flex items-center justify-between border-b p-5"><div><h2 id="modalTitle" class="display-face text-2xl">Add</h2><p class="text-xs text-slate-500">Save to backend or offline queue</p></div><button id="closeModal" class="rounded-xl p-2 hover:bg-slate-100"><i data-lucide="x"></i></button></div>
+  <form id="recordForm" class="grid gap-4 p-5 sm:grid-cols-2"></form>
+  <div class="flex justify-end gap-3 border-t p-5"><button type="button" id="cancelModal" class="rounded-xl border px-4 py-2.5 font-bold">Cancel</button><button type="submit" form="recordForm" class="rounded-xl bg-[#10233f] px-5 py-2.5 font-bold text-white">Save</button></div>
+ </div>
+</div>
+<div id="toast" class="fixed bottom-5 right-5 z-[60] flex translate-y-4 items-center gap-3 rounded-xl bg-[#10233f] px-4 py-3 text-sm font-medium text-white opacity-0 shadow-xl transition duration-300"><i data-lucide="check-circle-2" class="h-5 w-5 text-[#ffb636]"></i><span id="toastMessage"></span></div>
+
+<script>
+const API = "/v1";
+const STORAGE = "college_academic_offline_v4";
+const resources = {
+ assignments:{title:"Assignments", singular:"Assignment", help:"Manage assignment title, subject, description, due date and status.",
+  columns:[["title","Title"],["subject","Subject"],["description","Description"],["due_date","Due Date"],["status","Status"]],
+  fields:[
+   ["title","Title","text",true],["subject","Subject","text",false],["description","Description","textarea",false],["due_date","Due Date","date",false],["status","Status","select",false,["Pending","Submitted","Completed"]]
+  ]},
+ exams:{title:"Exams",singular:"Exam",help:"Manage exam schedule and maximum marks.",
+  columns:[["title","Title"],["subject","Subject"],["exam_date","Date"],["start_time","Time"],["room","Room"],["max_marks","Max Marks"]],
+  fields:[["title","Title","text",true],["subject","Subject","text",false],["exam_date","Exam Date","date",false],["start_time","Start Time","time",false],["room","Room","text",false],["max_marks","Max Marks","number",false]]},
+ results:{title:"Results",singular:"Result",help:"Manage student marks, grades and remarks.",
+  columns:[["student_id","Student ID"],["subject","Subject"],["exam","Exam"],["marks","Marks"],["max_marks","Max Marks"],["grade","Grade"],["remarks","Remarks"]],
+  fields:[["student_id","Student ID","number",false],["subject","Subject","text",true],["exam","Exam","text",false],["marks","Marks","number",false],["max_marks","Max Marks","number",false],["grade","Grade","text",false],["remarks","Remarks","textarea",false]]},
+ notices:{title:"Notices",singular:"Notice",help:"Publish and maintain college announcements.",
+  columns:[["type","Type"],["title","Title"],["details","Details"],["date","Date"]],
+  fields:[["type","Type","select",false,["General","Exam","Holiday","Event","Important"]],["title","Title","text",true],["details","Details","textarea",false],["date","Date","date",false]]},
+ timetable:{title:"Timetable",singular:"Timetable Entry",help:"Manage day, time, subject, room and teacher.",
+  columns:[["day","Day"],["time","Time"],["subject","Subject"],["room","Room"],["teacher","Teacher"]],
+  fields:[["day","Day","select",false,["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]],["time","Time","text",false],["subject","Subject","text",true],["room","Room","text",false],["teacher","Teacher","text",false]]}
+};
+
+let state = JSON.parse(localStorage.getItem(STORAGE) || '{"cache":{},"queue":[],"idMap":{}}');
+let currentResource = "assignments", editingId = null;
+
+function saveState(){localStorage.setItem(STORAGE,JSON.stringify(state)); updatePendingCount();}
+function showToast(msg){document.getElementById("toastMessage").textContent=msg;const t=document.getElementById("toast");t.classList.add("toast-visible");setTimeout(()=>t.classList.remove("toast-visible"),2800)}
+function setConnection(online){document.getElementById("connectionDot").className="status-dot "+(online?"online":"offline");document.getElementById("connectionText").textContent=online?"Backend Online":"Offline Mode";}
+function updatePendingCount(){document.getElementById("pendingCount").textContent=state.queue.length;}
+
+function localRows(resource){return state.cache[resource] || []}
+function applyQueueToRows(resource, rows){
+ let result = rows.map(x=>({...x}));
+ for(const op of state.queue.filter(x=>x.resource===resource)){
+  if(op.type==="create"){result.push({...op.data});}
+  if(op.type==="update"){
+   result=result.map(x=>String(x.id)===String(op.id)?{...x,...op.data}:x);
+  }
+  if(op.type==="delete"){result=result.filter(x=>String(x.id)!==String(op.id));}
+ }
+ return result;
+}
+function render(){
+ const cfg=resources[currentResource];
+ document.getElementById("sectionTitle").textContent=cfg.title;
+ document.getElementById("sectionHelp").textContent=cfg.help;
+ document.getElementById("addBtn").innerHTML='<i data-lucide="plus" class="h-4 w-4"></i>Add '+cfg.singular;
+ document.getElementById("tableHead").innerHTML="<tr>"+cfg.columns.map(c=>`<th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">${c[1]}</th>`).join("")+'<th class="px-4 py-3 text-right text-xs font-bold uppercase text-slate-500">Actions</th></tr>';
+ const rows=localRows(currentResource);
+ document.getElementById("tableBody").innerHTML=rows.length?rows.map(row=>`<tr class="border-t border-slate-100 hover:bg-slate-50/70">${cfg.columns.map(c=>`<td class="max-w-[260px] px-4 py-3 align-top">${escapeHtml(formatValue(row[c[0]]))}</td>`).join("")}<td class="whitespace-nowrap px-4 py-3 text-right align-top"><button class="action-btn bg-slate-100 hover:bg-slate-200" onclick="openEdit('${row.id}')"><i data-lucide="pencil" class="h-3.5 w-3.5"></i>Edit</button><button class="action-btn ml-1 bg-red-50 text-red-600 hover:bg-red-100" onclick="removeRecord('${row.id}')"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i>Delete</button></td></tr>`).join(""):`<tr><td colspan="${cfg.columns.length+1}" class="px-5 py-12 text-center text-sm text-slate-400">No ${cfg.title.toLowerCase()} found. Click “Add ${cfg.singular}”.</td></tr>`;
+ lucide.createIcons();
+}
+function formatValue(v){return v===null||v===undefined||v===""?"—":String(v)}
+function escapeHtml(v){return v.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+
+function openModal(row=null){
+ editingId=row?row.id:null; const cfg=resources[currentResource];
+ document.getElementById("modalTitle").textContent=(row?"Edit ":"Add ")+cfg.singular;
+ document.getElementById("recordForm").innerHTML=cfg.fields.map(([key,label,type,required,opts])=>{
+  let value=row?.[key] ?? (key==="max_marks"?100:key==="student_id"?1:"");
+  if(type==="textarea") return `<label class="sm:col-span-2"><span class="mb-1 block text-sm font-bold">${label}${required?" *":""}</span><textarea name="${key}" rows="3" ${required?"required":""} class="w-full rounded-xl border border-slate-200 px-3 py-2.5">${escapeHtml(String(value))}</textarea></label>`;
+  if(type==="select") return `<label><span class="mb-1 block text-sm font-bold">${label}</span><select name="${key}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5">${opts.map(o=>`<option ${String(value)===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
+  return `<label><span class="mb-1 block text-sm font-bold">${label}${required?" *":""}</span><input name="${key}" type="${type}" value="${escapeHtml(String(value))}" ${required?"required":""} class="w-full rounded-xl border border-slate-200 px-3 py-2.5"></label>`;
+ }).join("");
+ document.getElementById("modal").classList.remove("hidden");document.body.classList.add("modal-open");lucide.createIcons();
+}
+function closeModal(){document.getElementById("modal").classList.add("hidden");document.body.classList.remove("modal-open");editingId=null}
+function formData(){const fd=new FormData(document.getElementById("recordForm"));const out={};fd.forEach((v,k)=>out[k]=v);if(currentResource==="results"||currentResource==="exams"){["student_id","marks","max_marks"].forEach(k=>{if(k in out&&out[k]!=="")out[k]=Number(out[k])})}return out}
+
+async function fetchResource(resource){
+ try{
+  const res=await fetch(`${API}/${resource}`,{cache:"no-store"});
+  if(!res.ok)throw new Error("Backend unavailable");
+  const server=await res.json();
+  state.cache[resource]=applyQueueToRows(resource,server);
+  saveState();setConnection(true);render();return true;
+ }catch(e){
+  setConnection(false);
+  if(!state.cache[resource])state.cache[resource]=[];
+  render();return false;
+ }
+}
+function tempId(){return "local-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)}
+function queueCreate(resource,data){
+ const id=tempId();const record={id,...data,_offline:true};
+ state.cache[resource]=[...(state.cache[resource]||[]),record];
+ state.queue.push({type:"create",resource,tempId:id,data:record});
+ saveState();render();showToast("Saved offline. It will sync automatically.");return record;
+}
+async function createRecord(resource,data){
+ try{const r=await fetch(`${API}/${resource}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});if(!r.ok)throw new Error();const record=await r.json();state.cache[resource]=[record,...(state.cache[resource]||[])];saveState();setConnection(true);render();showToast("Saved to backend.");return}
+ catch(e){queueCreate(resource,data)}
+}
+async function updateRecord(resource,id,data){
+ try{
+  const realId=state.idMap[id]||id;
+  if(String(realId).startsWith("local-"))throw new Error("local");
+  const r=await fetch(`${API}/${resource}/${realId}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});if(!r.ok)throw new Error();
+  const record=await r.json();state.cache[resource]=(state.cache[resource]||[]).map(x=>String(x.id)===String(id)||String(x.id)===String(realId)?record:x);saveState();setConnection(true);render();showToast("Updated in backend.");
+ }catch(e){
+  state.cache[resource]=(state.cache[resource]||[]).map(x=>String(x.id)===String(id)?{...x,...data,_offline:true}:x);
+  state.queue.push({type:"update",resource,id,data});saveState();render();showToast("Update saved offline.");
+ }
+}
+async function removeRecord(resourceId){
+ const [resource,id]=[currentResource,resourceId];
+ if(!confirm("Delete this record?"))return;
+ const realId=state.idMap[id]||id;
+ if(String(id).startsWith("local-")){
+  state.cache[resource]=(state.cache[resource]||[]).filter(x=>String(x.id)!==String(id));
+  state.queue=state.queue.filter(op=>!(op.resource===resource&&op.type==="create"&&op.tempId===id));
+  saveState();render();showToast("Offline record deleted.");return;
+ }
+ try{
+  const r=await fetch(`${API}/${resource}/${realId}`,{method:"DELETE"});if(!r.ok)throw new Error();
+  state.cache[resource]=(state.cache[resource]||[]).filter(x=>String(x.id)!==String(id)&&String(x.id)!==String(realId));saveState();setConnection(true);render();showToast("Deleted from backend.");
+ }catch(e){
+  state.cache[resource]=(state.cache[resource]||[]).filter(x=>String(x.id)!==String(id));
+  state.queue.push({type:"delete",resource,id});saveState();render();showToast("Delete saved offline.");
+ }
+}
+async function syncQueue(){
+ if(!state.queue.length){updatePendingCount();return}
+ try{const h=await fetch(`${API}/health`,{cache:"no-store"});if(!h.ok)throw new Error()}catch(e){setConnection(false);return}
+ setConnection(true);
+ const remaining=[];
+ for(const op of state.queue){
+  try{
+   if(op.type==="create"){
+    const r=await fetch(`${API}/${op.resource}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(op.data)});if(!r.ok)throw new Error();
+    const record=await r.json();state.idMap[op.tempId]=record.id;
+    state.cache[op.resource]=(state.cache[op.resource]||[]).map(x=>String(x.id)===String(op.tempId)?record:x);
+   }else{
+    const id=state.idMap[op.id]||op.id;
+    const r=await fetch(`${API}/${op.resource}/${id}`,{method:op.type==="delete"?"DELETE":"PUT",headers:{"Content-Type":"application/json"},body:op.type==="update"?JSON.stringify(op.data):undefined});
+    if(!r.ok)throw new Error();
+    if(op.type==="update"){const record=await r.json();state.cache[op.resource]=(state.cache[op.resource]||[]).map(x=>String(x.id)===String(op.id)||String(x.id)===String(id)?record:x)}
+    if(op.type==="delete"){state.cache[op.resource]=(state.cache[op.resource]||[]).filter(x=>String(x.id)!==String(op.id)&&String(x.id)!==String(id))}
+   }
+  }catch(e){remaining.push(op)}
+ }
+ state.queue=remaining;saveState();render();
+ if(remaining.length)showToast("Some offline changes are still waiting.");else showToast("All offline changes synced.");
+}
+
+window.openEdit=function(id){const row=(state.cache[currentResource]||[]).find(x=>String(x.id)===String(id));if(row)openModal(row)}
+window.removeRecord=function(id){removeRecord(currentResource,id)}
+
+document.querySelectorAll(".resource-tab").forEach(btn=>btn.addEventListener("click",()=>{
+ currentResource=btn.dataset.resource;
+ document.querySelectorAll(".resource-tab").forEach(b=>{b.classList.remove("bg-[#10233f]","text-white");b.classList.add("bg-white");});
+ btn.classList.add("bg-[#10233f]","text-white");btn.classList.remove("bg-white");
+ fetchResource(currentResource);
+}));
+document.getElementById("addBtn").addEventListener("click",()=>openModal());
+document.getElementById("closeModal").addEventListener("click",closeModal);
+document.getElementById("cancelModal").addEventListener("click",closeModal);
+document.getElementById("recordForm").addEventListener("submit",async e=>{
+ e.preventDefault();const data=formData();const id=editingId;closeModal();
+ if(id) await updateRecord(currentResource,id,data); else await createRecord(currentResource,data);
+});
+document.getElementById("syncBtn").addEventListener("click",syncQueue);
+window.addEventListener("online",()=>{setConnection(true);syncQueue();fetchResource(currentResource)});
+window.addEventListener("offline",()=>setConnection(false));
+setInterval(()=>{if(navigator.onLine)syncQueue()},15000);
+
+(async function init(){
+ setConnection(navigator.onLine);
+ updatePendingCount();
+ // Show cached data immediately, then try the backend.
+ if(state.cache[currentResource])render();
+ await fetchResource(currentResource);
+ if(navigator.onLine)await syncQueue();
+})();
+</script>
+</body>
+</html>
